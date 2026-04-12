@@ -1,0 +1,42 @@
+cabal-version: 3.0
+name:          simple-client
+version:       0.1
+author:        Andrea Rossato
+maintainer:    andrea.rossato@unitn.it
+homepage:      https://codeberg.org/andrea_rossato/hs-wayland-scanner
+synopsis:      a simple wayland client
+description:   a simple wayland client
+
+category:           System
+license:            BSD-3-Clause
+extra-source-files: README.md
+build-type:         Simple
+
+library
+    hs-source-dirs:   ./src
+    exposed-modules:  Graphics.Wayland.Protocol.Wayland
+                      Graphics.Wayland.Client.Protocol.Wayland
+                      Graphics.Wayland.Client.Core
+    include-dirs:      ./cbits
+    c-sources:         ./cbits/wayland-client-protocols.c
+    build-depends:     base
+    pkgconfig-depends: wayland-server
+    ghc-options:        -O -Wall
+    ghc-prof-options:   -auto-all
+    default-language:   Haskell2010
+    default-extensions: ForeignFunctionInterface
+
+executable simple-client
+    main-is:        simple-client.hs
+    hs-source-dirs: ., ./src
+    other-modules:  Graphics.Wayland.Protocol.Wayland
+                    Graphics.Wayland.Client.Protocol.Wayland
+                    Graphics.Wayland.Client.Core
+    include-dirs:   ./cbits
+    c-sources:      ./cbits/wayland-client-protocols.c
+    build-depends:   base
+    pkgconfig-depends: wayland-client
+    ghc-options:        -O -Wall
+    ghc-prof-options:   -auto-all
+    default-language:   Haskell2010
+    default-extensions: ForeignFunctionInterface
