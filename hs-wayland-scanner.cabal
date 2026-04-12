@@ -37,9 +37,15 @@ library
                      Graphics.Wayland.Scanner.Solve
                      Graphics.Wayland.Scanner.Text
                      Graphics.Wayland.Scanner.Types
-    build-depends:   base, text, bytestring, containers, directory, filepath, process, xml
-    ghc-options:     -O -Wall
-    ghc-prof-options: -auto-all
+    build-depends:  base       >= 4.10 && < 4.30,
+                    text       >= 2.0 && < 2.5,
+                    bytestring >= 0.5 && < 0.20,
+                    containers >= 0.7 && < 0.10,
+                    directory  >= 1.2 && < 1.6,
+                    filepath   >= 1.2 && < 1.6,
+                    process    >= 1.6 && < 1.7,
+                    xml        >= 1.3 && < 1.4
+    ghc-options:     -Wall
     default-language: Haskell2010
 
 executable hws
@@ -53,7 +59,13 @@ executable hws
                     Graphics.Wayland.Scanner.Solve
                     Graphics.Wayland.Scanner.Text
                     Graphics.Wayland.Scanner.Types
-    build-depends:  base, text, bytestring, containers, directory, filepath, process, xml
-    ghc-options:    -O -Wall -main-is Graphics.Wayland.Scanner.Main
-    ghc-prof-options: -auto-all
+    build-depends:  base       >= 4.10 && < 4.30,
+                    text       >= 2.0 && < 2.5,
+                    bytestring >= 0.5 && < 0.20,
+                    containers >= 0.7 && < 0.10,
+                    directory  >= 1.2 && < 1.6,
+                    filepath   >= 1.2 && < 1.6,
+                    process    >= 1.6 && < 1.7,
+                    xml        >= 1.3 && < 1.4
+    ghc-options:    -Wall -main-is Graphics.Wayland.Scanner.Main
     default-language: Haskell2010
