@@ -18,9 +18,9 @@ extra-source-files: README.md
                     examples/**/*.cfg
                     examples/**/*.hs
                     examples/**/*.md
-                    examples/hello-world/protocols/*.xml
-                    examples/simple-client/protocols/*.xml
-                    examples/simple-server/protocols/*.xml
+                    examples/hello-world/protocol/*.xml
+                    examples/simple-client/protocol/*.xml
+                    examples/simple-server/protocol/*.xml
 build-type:         Simple
 
 source-repository head

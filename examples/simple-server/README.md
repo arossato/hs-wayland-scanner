@@ -16,7 +16,7 @@ cd examples/simple-server
 Alternatively run:
 
 ``` shell
-/path/to/hws -p ./  -r Server protocols/wayland.xml
+/path/to/hws -p ./  -r Server protocol/wayland.xml
 ```
 
 Now you can build it with `cabal`:

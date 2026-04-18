@@ -21,7 +21,7 @@ library
                       Graphics.Wayland.Protocol.XdgShell
     include-dirs:      ./cbits
     c-sources:         ./cbits/wayland-client-protocols.c
-    build-depends:     base, unix
+    build-depends:     base
     pkgconfig-depends: wayland-client
     ghc-options:        -O -Wall
     ghc-prof-options:   -auto-all

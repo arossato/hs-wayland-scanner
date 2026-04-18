@@ -20,7 +20,7 @@ cd examples/hello-world
 Alternatively run:
 
 ``` shell
-/path/to/hws -p ./  protocols/wayland.xml protocols/xdg-shell.xml
+/path/to/hws -p ./  protocol/wayland.xml protocols/xdg-shell.xml
 ```
 
 Now you can build it with `cabal`:

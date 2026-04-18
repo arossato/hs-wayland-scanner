@@ -16,7 +16,7 @@ cd examples/simple-client
 Alternatively run:
 
 ``` shell
-/path/to/hws -p ./  protocols/wayland.xml
+/path/to/hws -p ./  protocol/wayland.xml
 ```
 
 Now you can build it with `cabal`:
