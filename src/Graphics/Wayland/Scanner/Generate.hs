@@ -73,7 +73,7 @@ generateDirs (HwsConfig prefix nameSpace role _ cbits src) = do
 generateModule :: HwsConfig -> SolvedProtocol -> IO ()
 generateModule cfg@(HwsConfig prefix nameSpace role _ _ src) proto = do
   let dir       = T.unpack $ T.replace "." "/"  $ T.pack nameSpace
-      hsCode    = renderProtocol role proto
+      hsCode    = renderProtocol role $ addImplicitRequestsToProtocol role proto
       roleName  = show role
       protoFile = src </> dir </> "Wayland" </> roleName </> "Protocol" </> T.unpack (toHsType $ solvedProtoName proto)
       enumsFile = src </> dir </> "Wayland" </> "Protocol" </> T.unpack (toHsType $ solvedProtoName proto)
@@ -96,7 +96,39 @@ generateFFIWrapper :: HwsConfig -> SolvedProtocol -> IO ()
 generateFFIWrapper (HwsConfig prefix _ role _ cbits _) (SolvedProtocol name _ ifaces _ _) = do
   let roleName = map toLower $ show role
       gen (Interface iface _ _ evs reqs _ _) =
-        renderCWrapper role iface (if role == Server then evs else reqs) <>
+        renderCWrapper role iface (if role == Server then evs else addImplicitRequests name iface reqs) <>
         if null evs || role == Server then "" else renderCListener iface
       file = autogenComment <> "#include <" <> name <> "-" <> T.pack roleName <> "-protocol.h>\n"  <> T.unlines (map gen ifaces)
   T.writeFile (prefix </> cbits </> T.unpack name ++ "-" ++ roleName ++ ".c") file
+
+needImplicitRequest :: [Name]
+needImplicitRequest =
+  [ "wl_registry"
+  , "wl_compositor"
+  , "wl_callback"
+  , "wl_shm"
+  , "wl_data_device"
+  , "wl_shell"
+  , "wl_shell_surface"
+  , "wl_seat"
+  , "wl_pointer"
+  , "wl_keyboard"
+  , "wl_touch"
+  , "wl_output"
+  ]
+
+implicitRequest :: Message
+implicitRequest = Message "destroy" "" [] 1
+
+addImplicitRequests :: Name -> Name -> [Message] -> [Message]
+addImplicitRequests "wayland" name msgs =
+  if name `elem` needImplicitRequest
+  then msgs ++ [implicitRequest]
+  else msgs
+addImplicitRequests _ _ msgs = msgs
+
+addImplicitRequestsToProtocol :: Role -> SolvedProtocol -> SolvedProtocol
+addImplicitRequestsToProtocol Server p = p
+addImplicitRequestsToProtocol _ (SolvedProtocol name desc ifaces deps enums) =
+  let ifaces' = flip map ifaces $ \i -> i {ifaceReqs = addImplicitRequests (ifaceProtocol i) (ifaceName i) (ifaceReqs i)}
+  in SolvedProtocol name desc ifaces' deps enums
