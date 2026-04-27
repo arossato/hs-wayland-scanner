@@ -60,15 +60,15 @@ data ObjectType
   deriving (Eq, Show)
 
 data Arg
-  = ArgNewId  ObjectType
-  | ArgObject ObjectType Bool -- Bool is for allow-null
-  | ArgValue  Text WlType
-  | ArgArray  Text
+  = ArgNewId  Name ObjectType
+  | ArgObject Name ObjectType Bool -- Bool is for allow-null
+  | ArgValue  Name Text WlType
+  | ArgArray  Name Text
   deriving (Eq, Show)
 
 data WlType
-  = TInt  (Maybe Name) -- possible enum
-  | TUint (Maybe Name) -- possible enum
+  = TInt   (Maybe Name) -- possible enum
+  | TUint  (Maybe Name) -- possible enum
   | TString Bool       -- Bool is for allow-null
   | TFixed
   | TFd
@@ -122,15 +122,15 @@ data RoleRender = RoleRender
 -- and remove it from the argument list.
 splitArgs :: [Arg] -> (Maybe ObjectType, [Arg])
 splitArgs args =
-  case [t | ArgNewId t <- args] of
+  case [t | ArgNewId _ t <- args] of
     []  -> (Nothing, args)
     [t] -> (Just  t, filter (not . isNewId) args)
     _   -> error "multiple new_id arguments (unexpected in Wayland)"
 
 isNewId :: Arg -> Bool
-isNewId (ArgNewId _) = True
-isNewId _            = False
+isNewId (ArgNewId _ _) = True
+isNewId _              = False
 
 notValue :: Arg -> Bool
-notValue (ArgValue _ _) = False
-notValue _              = True
+notValue (ArgValue _ _ _) = False
+notValue _                = True

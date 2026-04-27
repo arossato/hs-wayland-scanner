@@ -22,24 +22,24 @@ import Graphics.Wayland.Scanner.Types
 renderCArg :: Role -> Arg -> Name -> Text
 renderCArg role arg argName =
   case arg of
-    (ArgNewId  (Untyped  _)  ) -> error "new_id cannot be a function argument"
-    (ArgNewId  (Typed  _ t)  ) -> if role == Server
-                                  then "struct wl_resource *" <> argName
-                                  else "struct " <> t <> " *" <> argName
-    (ArgObject (Typed  _ t) _) -> if role == Server
-                                  then "struct wl_resource *" <> argName
-                                  else "struct " <> t <> " *" <> argName
-    (ArgObject (Untyped  _) _) -> "struct wl_proxy *" <> argName
-    (ArgValue  _  (TInt  _)  ) -> "int32_t "          <> argName
-    (ArgValue  _  (TUint _)  ) -> "uint32_t "         <> argName
-    (ArgValue  _   TFixed    ) -> "int32_t "          <> argName
-    (ArgValue  _  (TString _)) -> "const char *"      <> argName
-    (ArgValue  _   TFd       ) -> "int32_t "          <> argName
-    (ArgArray  _             ) -> "struct wl_array *" <> argName
+    (ArgNewId _ (Untyped  _)   ) -> error "new_id cannot be a function argument"
+    (ArgNewId _ (Typed  _ t)   ) -> if role == Server
+                                    then "struct wl_resource *" <> argName
+                                    else "struct " <> t <> " *" <> argName
+    (ArgObject _ (Typed  _ t) _) -> if role == Server
+                                    then "struct wl_resource *" <> argName
+                                    else "struct " <> t <> " *" <> argName
+    (ArgObject _ (Untyped  _) _) -> "struct wl_proxy *" <> argName
+    (ArgValue  _ _  (TInt  _)  ) -> "int32_t "          <> argName
+    (ArgValue  _ _  (TUint _)  ) -> "uint32_t "         <> argName
+    (ArgValue  _ _   TFixed    ) -> "int32_t "          <> argName
+    (ArgValue  _ _  (TString _)) -> "const char *"      <> argName
+    (ArgValue  _ _   TFd       ) -> "int32_t "          <> argName
+    (ArgArray  _ _             ) -> "struct wl_array *" <> argName
 
 renderCReturn :: Role -> Maybe ObjectType -> Text
 renderCReturn _    (Just (Untyped _)) = "void * "
-renderCReturn role (Just          t)  = renderCArg role (ArgNewId t) ""
+renderCReturn role (Just          t)  = renderCArg role (ArgNewId "" t) ""
 renderCReturn _    Nothing            = "void"
 
 -- | Generate request c wrappers
@@ -55,8 +55,8 @@ renderCWrapper role iface reqs = unlines' $ map gen reqs
               (Just (Untyped d), as) ->
                 ( Just (Untyped d)
                 , as ++
-                  [ ArgObject   (Typed d "wl_interface") False
-                  , ArgValue "" (TUint Nothing)
+                  [ ArgObject   "" (Typed d "wl_interface") False
+                  , ArgValue "" "" (TUint Nothing)
                   ]
                 )
               (mt, as) -> (mt, as)

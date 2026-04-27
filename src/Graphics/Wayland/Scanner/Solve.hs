@@ -36,9 +36,9 @@ buildIfaceMap protos =
 -- | Solve 'Protocol' dependencies and 'enum' types.
 solveProtocol :: IfaceMap -> Protocol -> SolvedProtocol
 solveProtocol ifaceMap (Protocol name desc ifaces) =
-  let getArg (ArgObject (Typed _ n) _) = Just n
-      getArg (ArgNewId  (Typed _ n)  ) = Just n
-      getArg  _                        = Nothing
+  let getArg (ArgObject _ (Typed _ n) _) = Just n
+      getArg (ArgNewId  _ (Typed _ n)  ) = Just n
+      getArg  _                          = Nothing
       getDeps (Message _ _ as _)       = mapMaybe getArg as
       collectArgs (Interface _ _ _ evs reqs _ _) =
         concatMap getDeps evs ++ concatMap getDeps reqs
@@ -58,9 +58,9 @@ collectEnumTypes (Interface name _ _ evs reqs _ _) =
         case T.splitOn "." e of
           [_,_] -> e
           _     -> name <> "." <> e
-      getArgEnum (ArgValue _ (TInt  (Just e))) = Just (nsEnum e, Set.singleton EInt )
-      getArgEnum (ArgValue _ (TUint (Just e))) = Just (nsEnum e, Set.singleton EUint)
-      getArgEnum  _                            = Nothing
+      getArgEnum (ArgValue _ _ (TInt  (Just e))) = Just (nsEnum e, Set.singleton EInt )
+      getArgEnum (ArgValue _ _ (TUint (Just e))) = Just (nsEnum e, Set.singleton EUint)
+      getArgEnum  _                              = Nothing
       getEnum (Message _ _ as _) = mapMaybe getArgEnum as
       collectedEnums = nub $ concatMap getEnum evs ++ concatMap getEnum reqs
    in Map.fromListWith Set.union collectedEnums

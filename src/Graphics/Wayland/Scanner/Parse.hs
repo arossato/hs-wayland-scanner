@@ -31,6 +31,7 @@ children name = findChildren (unqual name)
 parseWlTypeArg :: Element -> Arg
 parseWlTypeArg el =
   let t   = attr "type"       el
+      n   = attr "name"       el
       d   = parseDesc         el
       en  = attr "enum"       el
       an  = attr "allow-null" el
@@ -38,13 +39,13 @@ parseWlTypeArg el =
               Nothing -> Untyped d
               Just x  -> Typed   d (T.pack x)
   in case t of
-       "object" -> ArgObject obj $ an /= "false"
-       "new_id" -> ArgNewId  obj
-       "array"  -> ArgArray  d
-       "uint"   -> ArgValue  d $ TUint   $ if T.null en then Nothing else Just en
-       "int"    -> ArgValue  d $ TInt    $ if T.null en then Nothing else Just en
-       "string" -> ArgValue  d $ TString $ an == "true"
-       _        -> ArgValue  d $ parseWlTypeValue t
+       "object" -> ArgObject n obj $ an /= "false"
+       "new_id" -> ArgNewId  n obj
+       "array"  -> ArgArray  n d
+       "uint"   -> ArgValue  n d $ TUint   $ if T.null en then Nothing else Just en
+       "int"    -> ArgValue  n d $ TInt    $ if T.null en then Nothing else Just en
+       "string" -> ArgValue  n d $ TString $ an == "true"
+       _        -> ArgValue  n d $ parseWlTypeValue t
 
 parseWlTypeValue :: Text -> WlType
 parseWlTypeValue "fixed" = TFixed

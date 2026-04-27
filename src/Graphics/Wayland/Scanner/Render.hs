@@ -27,18 +27,21 @@ import Graphics.Wayland.Scanner.Types
 renderArg :: Name -> Arg -> Text
 renderArg iface arg =
   case arg of
-    (ArgNewId  (Untyped  _)  ) -> "Ptr WlInterface -> Word32 -> Word32" -- A special case: new_id without interface
-    (ArgNewId  (Typed  d t)  ) -> "Ptr " <> toHsType t <> " "  <> formatArgComment d
-    (ArgObject (Typed d  t) b) -> "Ptr " <> toHsType t <> " "  <> formatArgComment (d <> maybeNull b)
-    (ArgObject (Untyped  d) b) -> "Ptr () " <> formatArgComment (d <> " Opaque pointer: cast with 'castPtr'") <> maybeNull b
-    (ArgValue  d  (TInt  e)  ) -> maybe "Int32"  formatEnum e  <> " " <> formatArgComment d
-    (ArgValue  d  (TUint e)  ) -> maybe "Word32" formatEnum e  <> " " <> formatArgComment d
-    (ArgValue  d   TFixed    ) -> "Int32 "       <> formatArgComment d
-    (ArgValue  d  (TString b)) -> "CString "     <> formatArgComment (d <> maybeNull b)
-    (ArgValue  d   TFd       ) -> "CInt "        <> formatArgComment d
-    (ArgArray  d             ) -> "Ptr WlArray " <> formatArgComment d
+    (ArgNewId  _ (Untyped  _)  ) -> "Ptr WlInterface -> Word32 -> Word32" -- A special case: new_id without interface
+    (ArgNewId  n (Typed  d t)  ) -> "Ptr " <> toHsType t <> " "  <> formatArgComment (formatName n d)
+    (ArgObject n (Typed d  t) b) -> "Ptr " <> toHsType t <> " "  <> formatArgComment (formatName n d) <> maybeNull b
+    (ArgObject n (Untyped  d) b) -> "Ptr () " <> formatArgComment ((formatName n d) <> " (Opaque pointer: cast with 'castPtr')") <> maybeNull b
+    (ArgValue  n d  (TInt  e)  ) -> maybe "Int32"  formatEnum e  <> " " <> formatArgComment (formatName n d)
+    (ArgValue  n d  (TUint e)  ) -> maybe "Word32" formatEnum e  <> " " <> formatArgComment (formatName n d)
+    (ArgValue  n d   TFixed    ) -> "Int32 "       <> formatArgComment (formatName n d)
+    (ArgValue  n d  (TString b)) -> "CString "     <> formatArgComment (formatName n d) <> maybeNull b
+    (ArgValue  n d   TFd       ) -> "CInt "        <> formatArgComment (formatName n d)
+    (ArgArray  n d             ) -> "Ptr WlArray " <> formatArgComment (formatName n d)
   where
-    maybeNull b = if b then " __Maybe @NULL@__" else ""
+    maybeNull b = if b then " (__Maybe @NULL@__)" else ""
+    formatName "" d = d
+    formatName n "" = "__" <> n <> "__"
+    formatName n d  = "__" <> n <> "__" <> ": " <> d
     formatEnum e =
       case T.splitOn "." e of
         [x,y] -> T.toUpper $ x     <> "_" <> y
@@ -48,7 +51,7 @@ renderArg iface arg =
 renderReturn :: Name -> Maybe ObjectType -> Text
 renderReturn _  Nothing           = "IO ()"
 renderReturn n (Just (Typed d t)) =
-  "IO (" <> renderArg n (ArgNewId $ Typed "" t) <> ") " <> formatArgComment d
+  "IO (" <> renderArg n (ArgNewId "" $ Typed "" t) <> ") " <> formatArgComment d
 renderReturn _ (Just (Untyped _)) =
   "Ptr WlInterface "      <> formatArgComment "Interface descriptor (e.g. 'wl_compositor_interface')" <>
   "\n    -> Word32 "      <> formatArgComment "Version to bind" <>
@@ -203,7 +206,7 @@ roleRender Client (Interface iface _ _ evs reqs _ _) =
   RoleRender Client evs reqs "_" "_listener"  "Listener"
   [ "Ptr () -- ^ user data"
   , "Ptr "  <> toHsType iface <> " -- ^ The interface '" <> toHsType iface <> "'"
-  ] $ "Ptr " <> toHsType iface <> formatArgComment ("The pointer to the interface '" <> toHsType iface <> "'.")
+  ] $ "Ptr " <> toHsType iface <> " " <> formatArgComment ("The pointer to the interface '" <> toHsType iface <> "'.")
 roleRender Server (Interface _ _ _ evs reqs _ _) =
   RoleRender Server reqs evs "_send_" "_interface" "Interface"
   [ "Ptr WlClient"
