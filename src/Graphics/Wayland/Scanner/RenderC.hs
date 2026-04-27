@@ -19,32 +19,37 @@ import Data.Text (Text)
 import Graphics.Wayland.Scanner.Text
 import Graphics.Wayland.Scanner.Types
 
-renderCArg :: Role -> Arg -> Text -> Text
-renderCArg r a an
-  | (ArgNewId  (Untyped  _)  ) <- a = error "new_id cannot be a function argument"
-  | (ArgNewId  (Typed  _ t)  ) <- a = if r == Server then "struct wl_resource *" <> an else "struct " <> t <> " *" <> an
-  | (ArgObject (Untyped  _) _) <- a = "struct wl_proxy *"    <> an
-  | (ArgObject (Typed  _ t) _) <- a = if r == Server then "struct wl_resource *" <> an else "struct " <> t <> " *" <> an
-  | (ArgValue  _  (TInt  _)  ) <- a = "int32_t "             <> an
-  | (ArgValue  _  (TUint _)  ) <- a = "uint32_t "            <> an
-  | (ArgValue  _   TFixed    ) <- a = "int32_t "             <> an
-  | (ArgValue  _  (TString _)) <- a = "const char *"         <> an
-  | (ArgValue  _   TFd       ) <- a = "int32_t "             <> an
-  | (ArgArray  _             ) <- a = "struct wl_array *"    <> an
+renderCArg :: Role -> Arg -> Name -> Text
+renderCArg role arg argName =
+  case arg of
+    (ArgNewId  (Untyped  _)  ) -> error "new_id cannot be a function argument"
+    (ArgNewId  (Typed  _ t)  ) -> if role == Server
+                                  then "struct wl_resource *" <> argName
+                                  else "struct " <> t <> " *" <> argName
+    (ArgObject (Typed  _ t) _) -> if role == Server
+                                  then "struct wl_resource *" <> argName
+                                  else "struct " <> t <> " *" <> argName
+    (ArgObject (Untyped  _) _) -> "struct wl_proxy *" <> argName
+    (ArgValue  _  (TInt  _)  ) -> "int32_t "          <> argName
+    (ArgValue  _  (TUint _)  ) -> "uint32_t "         <> argName
+    (ArgValue  _   TFixed    ) -> "int32_t "          <> argName
+    (ArgValue  _  (TString _)) -> "const char *"      <> argName
+    (ArgValue  _   TFd       ) -> "int32_t "          <> argName
+    (ArgArray  _             ) -> "struct wl_array *" <> argName
 
 renderCReturn :: Role -> Maybe ObjectType -> Text
-renderCReturn _ (Just (Untyped _)) = "void * "
-renderCReturn r (Just          t)  = renderCArg r (ArgNewId t) ""
-renderCReturn _ Nothing            = "void"
+renderCReturn _    (Just (Untyped _)) = "void * "
+renderCReturn role (Just          t)  = renderCArg role (ArgNewId t) ""
+renderCReturn _    Nothing            = "void"
 
 -- | Generate request c wrappers
 renderCWrapper :: Role -> Name -> [Message] -> Text
 renderCWrapper Server "wl_display" _ = ""
-renderCWrapper r iface reqs = unlines' $ map gen reqs
+renderCWrapper role iface reqs = unlines' $ map gen reqs
   where
     gen (Message name _ args _) =
-      let cName = iface <> (if r == Server then "_send_" else "_") <> name
-          (ret, args') = if r == Server then (Nothing, args) else
+      let cName = iface <> (if role == Server then "_send_" else "_") <> name
+          (ret, args') = if role == Server then (Nothing, args) else
             case splitArgs args of
               -- a new_id without interface: add wl_interface and version
               (Just (Untyped d), as) ->
@@ -56,16 +61,16 @@ renderCWrapper r iface reqs = unlines' $ map gen reqs
                 )
               (mt, as) -> (mt, as)
           idents = map (T.pack . return) ['a'..'z']
-          defArg = if r == Client
+          defArg = if role == Client
                    then "struct " <> iface <> " *" <> iface
                    else "struct wl_resource *resource_"
-          cArgs = T.intercalate ", " $ defArg : zipWith (renderCArg r) args' idents
+          cArgs   = T.intercalate ", "  $ defArg : zipWith (renderCArg role) args' idents
           cArgs'  = T.intercalate ", "  $ take (length args') idents
           cArgs'' = if T.null cArgs' then "" else ", " <> cArgs'
       in T.unlines
-           [ renderCReturn r ret <> " ffi_" <> cName <> "(" <> cArgs <> ")"
+           [ renderCReturn role ret <> " ffi_" <> cName <> "(" <> cArgs <> ")"
            , "{"
-           , "  return " <> cName <> "(" <> (if r == Server then "resource_" else iface) <> cArgs'' <> ");"
+           , "  return " <> cName <> "(" <> (if role == Server then "resource_" else iface) <> cArgs'' <> ");"
            , "}"
            ]
 
@@ -78,4 +83,3 @@ renderCListener cName =
   , "  " <> cName <> "_add_listener(" <> cName <> ", listener, data);"
   , "}"
   ]
-
