@@ -35,6 +35,7 @@ library
                      Graphics.Wayland.Scanner.Render
                      Graphics.Wayland.Scanner.RenderC
                      Graphics.Wayland.Scanner.Solve
+                     Graphics.Wayland.Scanner.Template
                      Graphics.Wayland.Scanner.Text
                      Graphics.Wayland.Scanner.Types
     build-depends:  base       >= 4.10 && < 4.30,
@@ -57,6 +58,7 @@ executable hws
                     Graphics.Wayland.Scanner.Render
                     Graphics.Wayland.Scanner.RenderC
                     Graphics.Wayland.Scanner.Solve
+                    Graphics.Wayland.Scanner.Template
                     Graphics.Wayland.Scanner.Text
                     Graphics.Wayland.Scanner.Types
     build-depends:  base       >= 4.10 && < 4.30,

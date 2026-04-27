@@ -17,6 +17,7 @@ module  Graphics.Wayland.Scanner
   , module Graphics.Wayland.Scanner.Render
   , module Graphics.Wayland.Scanner.RenderC
   , module Graphics.Wayland.Scanner.Solve
+  , module Graphics.Wayland.Scanner.Template
   , module Graphics.Wayland.Scanner.Text
   , module Graphics.Wayland.Scanner.Types
   ) where
@@ -26,5 +27,6 @@ import Graphics.Wayland.Scanner.Parse
 import Graphics.Wayland.Scanner.Render
 import Graphics.Wayland.Scanner.RenderC
 import Graphics.Wayland.Scanner.Solve
+import Graphics.Wayland.Scanner.Template
 import Graphics.Wayland.Scanner.Text
 import Graphics.Wayland.Scanner.Types

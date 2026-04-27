@@ -19,6 +19,7 @@ import qualified Data.Set as Set
 import qualified Data.Text as T
 import Data.Text (Text)
 
+import Graphics.Wayland.Scanner.Template
 import Graphics.Wayland.Scanner.Text
 import Graphics.Wayland.Scanner.Types
 

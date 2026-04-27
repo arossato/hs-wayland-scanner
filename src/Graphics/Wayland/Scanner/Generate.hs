@@ -28,6 +28,7 @@ import Graphics.Wayland.Scanner.Parse
 import Graphics.Wayland.Scanner.Render
 import Graphics.Wayland.Scanner.RenderC
 import Graphics.Wayland.Scanner.Solve
+import Graphics.Wayland.Scanner.Template
 import Graphics.Wayland.Scanner.Text
 import Graphics.Wayland.Scanner.Types
 
