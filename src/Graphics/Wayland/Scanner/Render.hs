@@ -60,7 +60,7 @@ renderReturn _ (Just (Untyped _)) =
 -- | Generate request bidings
 renderRequest :: RoleRender -> Name -> [Text]
 renderRequest (RoleRender r _ smsgs reqSep _ _ _ defArg) iface =
-  formatHaddockSubSec (toHsType iface <> " Requests") : map gen smsgs
+  formatHaddockSubSec (toHsType iface <> if r == Server then " Events" else " Requests") : map gen smsgs
   where
     gen (Message name desc args since) =
       let (ret, args') = if r == Server then (Nothing, args) else splitArgs args
@@ -152,7 +152,7 @@ renderCallback (RoleRender _ rmsgs _ _ _ _ defArgs _) iface = map gen rmsgs
 -- | Render the listener
 renderListener :: RoleRender -> Name -> [Text]
 renderListener (RoleRender _ []  _ _ _ _ _ _) _ = []
-renderListener (RoleRender _ rmsgs _ _ _ structSuffix _ _) iface =
+renderListener (RoleRender r rmsgs _ _ _ structSuffix _ _) iface =
   let hsIface = toHsType iface
       fieldName n = iface <> "_" <> n
       structName = hsIface <> structSuffix
@@ -164,7 +164,7 @@ renderListener (RoleRender _ rmsgs _ _ _ structSuffix _ _) iface =
         case fields of
           [] -> []
           (f:fs) -> "  { " <> f : map ("  , " <>) fs  ++ ["  }"]
-  in [ formatHaddockSubSec (toHsType iface <> " Events")
+  in [ formatHaddockSubSec (toHsType iface <> if r == Client then " Events" else " Requests")
      , "data " <> structName <> " = " <> structName
      ] ++ fieldsTxt
 
