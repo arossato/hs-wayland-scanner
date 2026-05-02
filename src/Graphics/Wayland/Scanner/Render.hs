@@ -157,9 +157,20 @@ renderCallback (RoleRender r rmsgs _ _ _ _ defArgs _) iface = map gen rmsgs
 renderListener :: RoleRender -> Name -> [Text]
 renderListener (RoleRender _ []  _ _ _ _ _ _) _ = []
 renderListener (RoleRender r rmsgs _ _ _ structSuffix _ _) iface =
-  let hsIface = toHsType iface
-      fieldName n = iface <> "_" <> n
-      structName = hsIface <> structSuffix
+  let hsIface      = toHsType iface
+      fieldName  n = iface <> "_" <> n
+      structName   = hsIface <> structSuffix
+      defFields    = T.intercalate "\n  , "
+        [ toHsFcn (fieldName n) <> " = nullFunPtr "
+        | (Message n _ _ _) <- rmsgs]
+      defListener =
+        [ ""
+        , "-- | Use 'default" <> structName <> "' to get a record with all 'nullFunPtr',"
+        , "-- then override the callbacks you need."
+        , "default" <> structName <> " :: " <> structName
+        , "default" <> structName <> " = "  <> structName
+        , "  { " <> defFields] ++ [ "  }"]
+
       fields =
         [ toHsFcn (fieldName n) <> " :: FunPtr " <> toHsType (fieldName n) <>
           "Cb -- ^ See '" <> toHsType (fieldName n) <> "Cb'"
@@ -168,9 +179,10 @@ renderListener (RoleRender r rmsgs _ _ _ structSuffix _ _) iface =
         case fields of
           [] -> []
           (f:fs) -> "  { " <> f : map ("  , " <>) fs  ++ ["  }"]
-  in [ formatHaddockSubSec (toHsType iface <> if r == Client then " Events" else " Requests")
+  in [ ""
+     , formatHaddockSubSec (toHsType iface <> if r == Client then " Events" else " Requests")
      , "data " <> structName <> " = " <> structName
-     ] ++ fieldsTxt
+     ] ++ fieldsTxt ++ defListener ++ [""]
 
 -- | Render an 'Interface': produce the 'enum's and the generated
 -- file.
