@@ -99,14 +99,15 @@ moduleEnumHeader (HwsConfig _ nameSpace role _ _ _) p =
   , "module " <> modName <> " where"
   , ""
   , "import Foreign"
+  , if solvedProtoName p /= "wayland" then "" else "import Foreign.C.Types"
   , "#include \"" <> solvedProtoName p <> "-" <> T.toLower modRole <> "-protocol.h\"\n"
   ] ++
   if solvedProtoName p /= "wayland" then [] else
-    [ "data WlArray"
-    , "data WlRegistry"
+    [ "data WlRegistry"
     , "data WlDisplay"
     , "data WlInterface"
-    ]
+    , ""
+    ] ++ wlArray
   where
     modName  = T.pack nameSpace <> ".Wayland.Protocol." <> toHsType (solvedProtoName p)
     modRole  = T.pack $ show role
@@ -268,6 +269,35 @@ moduleServerCore (HwsConfig _ nameSpace role _ _ _) =
   ]
   where
     modName = T.pack nameSpace <> ".Wayland." <> T.pack (show role)
+
+
+wlArray :: [Text]
+wlArray =
+  [ "#include <wayland-util.h>"
+  , ""
+  , "data WlArray = WlArray "
+  , "    { arraySize  :: CSize"
+  , "    , arrayAlloc :: CSize"
+  , "    , arrayData  :: Ptr ()"
+  , "    } deriving (Show, Eq)"
+  , ""
+  , "instance Storable WlArray where"
+  , "    sizeOf _    = #size struct wl_array"
+  , "    alignment _ = #alignment struct wl_array"
+  , "    peek ptr = do"
+  , "        s <- (#peek struct wl_array, size) ptr"
+  , "        a <- (#peek struct wl_array, alloc) ptr"
+  , "        d <- (#peek struct wl_array, data) ptr"
+  , "        return $ WlArray s a d"
+  , "    poke ptr (WlArray s a d) = do"
+  , "        (#poke struct wl_array, size) ptr s"
+  , "        (#poke struct wl_array, alloc) ptr a"
+  , "        (#poke struct wl_array, data) ptr d"
+  , ""
+  , "foreign import ccall \"wl_array_init\"    wl_array_init    :: Ptr WlArray -> IO ()"
+  , "foreign import ccall \"wl_array_add\"     wl_array_add     :: Ptr WlArray -> CSize -> IO (Ptr ())"
+  , "foreign import ccall \"wl_array_release\" wl_array_release :: Ptr WlArray -> IO ()"
+  ]
 
 autogenComment :: Text
 autogenComment =
