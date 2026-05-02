@@ -27,7 +27,7 @@ import Graphics.Wayland.Scanner.Types
 renderArg :: Role -> Name -> Arg -> Text
 renderArg role iface arg =
   case arg of
-    (ArgNewId  _ (Untyped  _)  ) -> "Ptr WlInterface -> Word32 -> Word32" -- A special case: new_id without interface
+    (ArgNewId  _ (Untyped  _)  ) -> bindRequest -- A special case: new_id without interface
     (ArgNewId  n (Typed  d t)  ) -> if role == Client
                                     then "Ptr " <> toHsType t <> " "  <> formatArgComment (formatName n d)
                                     else "Word32"             <> " "  <> formatArgComment (formatName n d)
@@ -41,6 +41,8 @@ renderArg role iface arg =
     (ArgArray  n d             ) -> "Ptr WlArray " <> formatArgComment (formatName n d)
   where
     maybeNull b = if b then " (__Maybe @NULL@__)" else ""
+    -- bind request for client created interfaces
+    bindRequest = T.unlines ["CString -- ^ The interface name", "    -> Word32 -- ^ Interface version", "    -> Word32 -- ^ id"]
     formatName "" d = d
     formatName n "" = "__" <> n <> "__"
     formatName n d  = "__" <> n <> "__" <> ": " <> d
