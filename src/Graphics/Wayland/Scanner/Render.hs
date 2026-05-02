@@ -24,11 +24,13 @@ import Graphics.Wayland.Scanner.Text
 import Graphics.Wayland.Scanner.Types
 
 -- | Name is the interface where the Arg is occuring
-renderArg :: Name -> Arg -> Text
-renderArg iface arg =
+renderArg :: Role -> Name -> Arg -> Text
+renderArg role iface arg =
   case arg of
     (ArgNewId  _ (Untyped  _)  ) -> "Ptr WlInterface -> Word32 -> Word32" -- A special case: new_id without interface
-    (ArgNewId  n (Typed  d t)  ) -> "Ptr " <> toHsType t <> " "  <> formatArgComment (formatName n d)
+    (ArgNewId  n (Typed  d t)  ) -> if role == Client
+                                    then "Ptr " <> toHsType t <> " "  <> formatArgComment (formatName n d)
+                                    else "Word32"             <> " "  <> formatArgComment (formatName n d)
     (ArgObject n (Typed d  t) b) -> "Ptr " <> toHsType t <> " "  <> formatArgComment (formatName n d) <> maybeNull b
     (ArgObject n (Untyped  d) b) -> "Ptr () " <> formatArgComment ((formatName n d) <> " (Opaque pointer: cast with 'castPtr')") <> maybeNull b
     (ArgValue  n d  (TInt  e)  ) -> maybe "Int32"  formatEnum e  <> " " <> formatArgComment (formatName n d)
@@ -48,11 +50,11 @@ renderArg iface arg =
         _     -> T.toUpper $ iface <> "_" <> e
 
 -- | Name is the iface name
-renderReturn :: Name -> Maybe ObjectType -> Text
-renderReturn _  Nothing           = "IO ()"
-renderReturn n (Just (Typed d t)) =
-  "IO (" <> renderArg n (ArgNewId "" $ Typed "" t) <> ") " <> formatArgComment d
-renderReturn _ (Just (Untyped _)) =
+renderReturn :: Role -> Name -> Maybe ObjectType -> Text
+renderReturn _ _  Nothing           = "IO ()"
+renderReturn r n (Just (Typed d t)) =
+  "IO (" <> renderArg r n (ArgNewId "" $ Typed "" t) <> ") " <> formatArgComment d
+renderReturn _ _ (Just (Untyped _)) =
   "Ptr WlInterface "      <> formatArgComment "Interface descriptor (e.g. 'wl_compositor_interface')" <>
   "\n    -> Word32 "      <> formatArgComment "Version to bind" <>
   "\n    -> IO (Ptr ()) " <> formatArgComment "Opaque pointer to the bound object; cast with 'castPtr'"
@@ -65,9 +67,9 @@ renderRequest (RoleRender r _ smsgs reqSep _ _ _ defArg) iface =
     gen (Message name desc args since) =
       let (ret, args') = if r == Server then (Nothing, args) else splitArgs args
           cName        = iface <> reqSep <> name
-          hsArgs       = defArg : map (renderArg iface) args'
+          hsArgs       = defArg : map (renderArg r iface) args'
           comment      = formatTopLevelComment $ desc <> "\n__Since version " <> (T.pack $ show since) <> "__"
-          typeSig      = formatArgs $ hsArgs ++ [renderReturn iface ret]
+          typeSig      = formatArgs $ hsArgs ++ [renderReturn r iface ret]
       in T.unlines
          [ comment
          , "foreign import ccall \"ffi_" <> cName <> "\""
@@ -133,12 +135,12 @@ renderEnum enumMap iface (EnumDecl name desc bf enums) =
 -- | Render wrappers for callbacks
 renderCallback :: RoleRender -> Name -> [Text]
 renderCallback (RoleRender _ []  _ _ _ _ _ _) _ = []
-renderCallback (RoleRender _ rmsgs _ _ _ _ defArgs _) iface = map gen rmsgs
+renderCallback (RoleRender r rmsgs _ _ _ _ defArgs _) iface = map gen rmsgs
   where
     gen (Message name desc args since) =
       let hsName = toHsType (iface <> "_" <> name) <> "Cb"
           comment = formatTopLevelComment $ desc <> "\n__Since version " <> (T.pack $ show since) <> "__"
-          args'   = formatArgs $ defArgs ++ map (renderArg iface) args ++ ["IO ()"]
+          args'   = formatArgs $ defArgs ++ map (renderArg r iface) args ++ ["IO ()"]
           typeSig = T.unwords ["type", hsName, "=\n   ", args']
           wrapper = T.unwords
                     [ "foreign import ccall \"wrapper\""
