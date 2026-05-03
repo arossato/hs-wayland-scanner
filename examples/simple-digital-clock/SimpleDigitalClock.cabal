@@ -1,0 +1,53 @@
+cabal-version: 3.0
+name:          SimpleDigitalClock
+version:       0.1
+author:        Andrea Rossato
+maintainer:    andrea.rossato@unitn.it
+build-type:    Simple
+
+library
+    hs-source-dirs:   ./src
+    exposed-modules:  Graphics.Wayland.Client.Core
+                      Graphics.Wayland.Client.Protocol.Wayland
+                      Graphics.Wayland.Protocol.Wayland
+                      Graphics.Wayland.Client.Protocol.XdgShell
+                      Graphics.Wayland.Protocol.XdgShell
+                      Graphics.Wayland.Client.Protocol.XdgDecorationUnstableV1
+                      Graphics.Wayland.Protocol.XdgDecorationUnstableV1
+                      Graphics.Wayland.SimpleDigitalClock.BufferPool
+                      Graphics.Wayland.SimpleDigitalClock.Listeners
+                      Graphics.Wayland.SimpleDigitalClock.Main
+                      Graphics.Wayland.SimpleDigitalClock.Render
+                      Graphics.Wayland.SimpleDigitalClock.Resource
+                      Graphics.Wayland.SimpleDigitalClock.Types
+    include-dirs:      ./cbits
+    c-sources:         ./cbits/wayland-client-protocols.c
+    build-depends:     base, unix, time, gi-cairo-render
+    pkgconfig-depends: wayland-client
+    ghc-options:        -Wall
+    default-language:   Haskell2010
+    default-extensions: ForeignFunctionInterface
+
+executable simple-digital-clock
+    main-is:        Graphics/Wayland/SimpleDigitalClock/Main.hs
+    hs-source-dirs: ./src
+    other-modules:  Graphics.Wayland.Client.Core
+                    Graphics.Wayland.Client.Protocol.Wayland
+                    Graphics.Wayland.Protocol.Wayland
+                    Graphics.Wayland.Client.Protocol.XdgShell
+                    Graphics.Wayland.Protocol.XdgShell
+                    Graphics.Wayland.Client.Protocol.XdgDecorationUnstableV1
+                    Graphics.Wayland.Protocol.XdgDecorationUnstableV1
+                    Graphics.Wayland.SimpleDigitalClock.BufferPool
+                    Graphics.Wayland.SimpleDigitalClock.Listeners
+                    Graphics.Wayland.SimpleDigitalClock.Render
+                    Graphics.Wayland.SimpleDigitalClock.Resource
+                    Graphics.Wayland.SimpleDigitalClock.Types
+    include-dirs:   ./cbits
+    c-sources:      ./cbits/wayland-client-protocols.c
+    build-depends:  base, unix, time, gi-cairo-render
+    pkgconfig-depends: wayland-client
+    ghc-options:       -main-is Graphics.Wayland.SimpleDigitalClock.Main
+                       -Wall
+    default-language:   Haskell2010
+    default-extensions: ForeignFunctionInterface

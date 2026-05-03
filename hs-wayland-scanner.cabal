@@ -21,6 +21,8 @@ extra-source-files: README.md
                     examples/hello-world/protocol/*.xml
                     examples/simple-client/protocol/*.xml
                     examples/simple-server/protocol/*.xml
+                    examples/simple-digital-clock/protocol/*.xml
+                    examples/simple-digital-clock/src/Graphics/Wayland/SimpleDigitalClock/*.hs
 build-type:         Simple
 
 source-repository head

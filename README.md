@@ -150,10 +150,17 @@ Options:
 Examples
 ========
 
-The source code comes with three examples: a `simple-server` and a
-`simple-client` which may interact, and a `hello-world` example: a
-standalone client that demonstrates `XDG-shell` handshaking and
-renders a semi-transparent blue window using `POSIX` shared memory.
+The source code comes with some examples:
+
+- a `simple-server` and a `simple-client` which may interact;
+
+- a `hello-world` example: a standalone client that demonstrates
+`XDG-shell` handshaking and renders a semi-transparent blue window
+using `POSIX` shared memory.
+
+- a `simple-digital-clock`: a complete Wayland client for displaying
+date and time, featuring Server-Side Decoration (compatible with `KDE
+Plasma`, `labwc`, and `sway`) with the `xdg-decoration` protocol.
 
 Each example comes with a `hws` configuration file and a `.cabal` file
 to build them. Refer to their respective `README` for further
