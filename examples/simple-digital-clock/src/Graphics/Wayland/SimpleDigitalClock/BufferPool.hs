@@ -119,8 +119,8 @@ destroyPool p = do
   when (debug st) $
     putStrLn "[DEBUG] Destroying the WlPool"
   destroyBuffer st (poolBuffer p)
-  wl_shm_pool_destroy (wlPool p)
   void $ c_munmap (bufferPtr $ poolBuffer p) (fi $ poolSize p)
+  wl_shm_pool_destroy (wlPool p)
   closeFd (poolFd p)
 
 recreatePool :: WlPool -> Int32 -> Int32 -> IO WlPool
