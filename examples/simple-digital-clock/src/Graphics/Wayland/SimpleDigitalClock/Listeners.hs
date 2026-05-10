@@ -196,6 +196,8 @@ xdgSurfaceConfigureCb stPtr xdgSurf serial = do
   let w = pendingWidth  st
       h = pendingHeight st
   resizeAndUpdate stRef w h
+  void $ wl_surface_damage (wlSurface st) 0 0 w h
+  void $ wl_surface_commit (wlSurface st)
 
 -- | Add the 'XdgSurfaceListener'
 setupXdgSurfaceListener :: IORef State -> IO ()

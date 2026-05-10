@@ -198,8 +198,6 @@ resizeAndUpdate stRef w h = do
         modifyIORef' stRef $ \s -> s { lastTime = time }
         updatePoolText p time
         void $ wl_surface_attach (wlSurface st) (wlBuffer $ poolBuffer p) 0 0
-        void $ wl_surface_damage (wlSurface st) 0 0 w h
-        void $ wl_surface_commit (wlSurface st)
 
   case (poolIsBusy pa, poolIsBusy pb) of
     (True,  True ) -> when (debug st) $ putStrLn "[DEBUG] both busy"

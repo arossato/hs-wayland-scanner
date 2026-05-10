@@ -129,6 +129,7 @@ mainLoop stRef = do
         modifyIORef' stRef $ \s -> s { sleeping = True }
         nextCb <- wl_surface_frame (wlSurface st)
         void $ wl_callback_add_listener nextCb (cbListener st) (statePtr st)
+        void $ wl_surface_damage (wlSurface st) 0 0 w h
         void $ wl_surface_commit (wlSurface st)
         void $ wl_display_flush  (display   st)
 
