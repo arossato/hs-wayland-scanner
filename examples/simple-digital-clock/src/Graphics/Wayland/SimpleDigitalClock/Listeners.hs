@@ -47,21 +47,27 @@ globalRegistryCb stPtr registry name interface _ = do
       comp <- wl_registry_bind registry name wl_compositor_interface 4
       surf <- wl_compositor_create_surface (castPtr comp)
       modifyIORef' stRef $ \s -> s { compositor = castPtr comp, wlSurface = surf }
+      addResource stRef $ managedWl wl_surface_destroy surf
+      addResource stRef $ managedWl wl_compositor_destroy (castPtr comp)
       putStrLn "[CLIENT] Bound compositor"
 
     "wl_shm" -> do
       shm <- wl_registry_bind registry name wl_shm_interface 1
       modifyIORef' stRef $ \s -> s { wlShm = castPtr shm }
+      putStrLn "[CLIENT] Bound wl_shm"
+      addResource stRef $ managedWl wl_shm_destroy (castPtr shm)
 
     "xdg_wm_base" -> do
       wm <- wl_registry_bind registry name xdg_wm_base_interface 1
       modifyIORef' stRef $ \s -> s { xdgWmBase = castPtr wm }
       putStrLn "[CLIENT] Bound xdg_wm_base"
+      addResource stRef $ managedWl xdg_wm_base_destroy (castPtr wm)
 
     "zxdg_decoration_manager_v1" -> do
       deco <- wl_registry_bind registry name zxdg_decoration_manager_v1_interface 1
       modifyIORef' stRef $ \s -> s { wlDeco = castPtr deco }
       putStrLn "[CLIENT] Bound zxdg_decoration_manager_v1"
+      addResource stRef $ managedWl zxdg_decoration_manager_v1_destroy (castPtr deco)
 
     _ -> return ()
 
