@@ -57,8 +57,7 @@ main = do
   -- check we bound needed interfaces
   when (compositor st == nullPtr ||
         wlShm      st == nullPtr ||
-        xdgWmBase  st == nullPtr ||
-        wlDeco     st == nullPtr) $ do
+        xdgWmBase  st == nullPtr) $ do
     putStrLn "[CLIENT] Cannot bind needed interfaces. Exiting..."
     exitFailure
 

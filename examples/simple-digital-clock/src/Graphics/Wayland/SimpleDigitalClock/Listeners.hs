@@ -242,11 +242,12 @@ xdgToplevelDecorationV1ConfigureCb stPtr deco mode = do
 setupZxdgToplevelDecorationListener :: IORef State -> IO ()
 setupZxdgToplevelDecorationListener stRef = do
   st   <- readIORef stRef
-  deco <- zxdg_decoration_manager_v1_get_toplevel_decoration (wlDeco st) (xdgTopLevel st)
-  void $ zxdg_toplevel_decoration_v1_set_mode deco ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE
-  cfgDeco <- mkZxdgToplevelDecorationV1ConfigureCb xdgToplevelDecorationV1ConfigureCb
-  let decoListener = ZxdgToplevelDecorationV1Listener cfgDeco
-  malloc >>= \ptr -> do
-    poke ptr decoListener
-    void $ zxdg_toplevel_decoration_v1_add_listener deco ptr (statePtr st)
-    addListenerResoure stRef zxdg_toplevel_decoration_v1_destroy deco [CbFunPtr cfgDeco] ptr
+  unless (wlDeco st == nullPtr) $ do
+    deco <- zxdg_decoration_manager_v1_get_toplevel_decoration (wlDeco st) (xdgTopLevel st)
+    void $ zxdg_toplevel_decoration_v1_set_mode deco ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE
+    cfgDeco <- mkZxdgToplevelDecorationV1ConfigureCb xdgToplevelDecorationV1ConfigureCb
+    let decoListener = ZxdgToplevelDecorationV1Listener cfgDeco
+    malloc >>= \ptr -> do
+      poke ptr decoListener
+      void $ zxdg_toplevel_decoration_v1_add_listener deco ptr (statePtr st)
+      addListenerResoure stRef zxdg_toplevel_decoration_v1_destroy deco [CbFunPtr cfgDeco] ptr
