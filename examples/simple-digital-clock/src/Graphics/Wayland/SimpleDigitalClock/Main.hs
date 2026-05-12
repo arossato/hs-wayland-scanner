@@ -150,14 +150,15 @@ mainLoop stRef = do
 
     mainLoop stRef
 
+  finalSt <- readIORef stRef
   putStrLn "[CLIENT] Cleaning up resources..."
   cleanupAllResources stRef
-  destroyPool (poolA st)
-  destroyPool (poolB st)
+  destroyPool (poolA finalSt)
+  destroyPool (poolB finalSt)
   -- Disconnect from the Wayland display socket
-  wl_display_disconnect (display st)
+  wl_display_disconnect (display finalSt)
   -- Finally, release the stable pointer
-  freeStablePtr (castPtrToStablePtr $ statePtr st)
+  freeStablePtr (castPtrToStablePtr $ statePtr finalSt)
   -- exit
   putStrLn "[CLIENT] Shutdown complete. Exiting..."
   exitSuccess
