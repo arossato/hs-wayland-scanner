@@ -39,7 +39,7 @@ parseWlTypeArg el =
               Nothing -> Untyped d
               Just x  -> Typed   d (T.pack x)
   in case t of
-       "object" -> ArgObject n obj $ an /= "false"
+       "object" -> ArgObject n obj $ an == "true"
        "new_id" -> ArgNewId  n obj
        "array"  -> ArgArray  n d
        "uint"   -> ArgValue  n d $ TUint   $ if T.null en then Nothing else Just en
