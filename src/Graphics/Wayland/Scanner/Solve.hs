@@ -42,25 +42,43 @@ solveProtocol ifaceMap (Protocol name desc ifaces) =
       getDeps (Message _ _ as _)       = mapMaybe getArg as
       collectArgs (Interface _ _ _ evs reqs _ _) =
         concatMap getDeps evs ++ concatMap getDeps reqs
-      args = nub $ concatMap collectArgs ifaces
+      objArgs     = concatMap collectArgs ifaces
+      enumResults = map collectEnumTypes ifaces
+
+      -- Merge all individual EnumMaps
+      mergedEnums = Map.unionsWith Set.union (map fst enumResults)
+
+      -- Gather enums external interface references
+      enumArgs = concatMap snd enumResults
+
+      -- Combine both sources of interface dependencies
+      allArgs = nub (objArgs ++ enumArgs)
+
       checkArg iface =
         case Map.lookup iface ifaceMap of
           Just  i -> if ifaceProtocol i /= name then Just $ ifaceProtocol i else Nothing
           Nothing -> error $ "Unsolved external dependency: unknown interface '" <>
                      T.unpack iface <> "' (protocol '" <> T.unpack name <> "')"
-  in SolvedProtocol name desc ifaces
-     (nub $ mapMaybe checkArg args)
-     (Map.unionsWith Set.union $ map collectEnumTypes ifaces)
 
-collectEnumTypes :: Interface -> EnumMap
+  in SolvedProtocol name desc ifaces (nub $ mapMaybe checkArg allArgs) mergedEnums
+
+collectEnumTypes :: Interface -> (EnumMap, [Name])
 collectEnumTypes (Interface name _ _ evs reqs _ _) =
-  let nsEnum e =
+  let qualifyEnum e =
         case T.splitOn "." e of
-          [_,_] -> e
-          _     -> name <> "." <> e
-      getArgEnum (ArgValue _ _ (TInt  (Just e))) = Just (nsEnum e, Set.singleton EInt )
-      getArgEnum (ArgValue _ _ (TUint (Just e))) = Just (nsEnum e, Set.singleton EUint)
+          [i, _] -> (i, e)                   -- External reference
+          _      -> (name, name <> "." <> e) -- Local enum
+      getArgEnum (ArgValue _ _ (TInt  (Just e))) = Just (qualifyEnum e, EInt )
+      getArgEnum (ArgValue _ _ (TUint (Just e))) = Just (qualifyEnum e, EUint)
       getArgEnum  _                              = Nothing
       getEnum (Message _ _ as _) = mapMaybe getArgEnum as
-      collectedEnums = nub $ concatMap getEnum evs ++ concatMap getEnum reqs
-   in Map.fromListWith Set.union collectedEnums
+      -- results contain ((iface, fullyQualifiedEnum), EnumType)
+      results = concatMap getEnum evs ++ concatMap getEnum reqs
+      -- Build the EnumMap
+      enumMap = Map.fromListWith Set.union
+                  [ (fqEnum, Set.singleton t) | ((_, fqEnum), t) <- results ]
+
+      -- External interfaces
+      extIfaces = nub [ i | ((i, _), _) <- results, i /= name ]
+
+  in (enumMap, extIfaces)

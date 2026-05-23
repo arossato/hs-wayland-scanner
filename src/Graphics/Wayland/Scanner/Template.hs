@@ -88,7 +88,9 @@ moduleHeader (HwsConfig _ nameSpace role _ _ _) (SolvedProtocol name desc _ deps
   where
     modName  = T.pack nameSpace  <> ".Wayland." <> modRole <> ".Protocol." <> toHsType name
     modRole  = T.pack $ show role
-    modImp d = "import " <> T.pack nameSpace <> ".Wayland." <> modRole <> ".Protocol." <> toHsType d
+    modImp d = T.unlines $
+               [ "import " <> T.pack nameSpace <> ".Wayland." <> modRole <> ".Protocol." <> toHsType d
+               , "import " <> T.pack nameSpace <> ".Wayland.Protocol." <> toHsType d]
     imports  = T.unlines $ map modImp deps
 
 moduleEnumHeader :: HwsConfig -> SolvedProtocol -> [Text]
